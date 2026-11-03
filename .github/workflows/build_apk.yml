@@ -53,7 +53,14 @@ jobs:
 
       - name: Copy APK to Root Staging
         run: |
-          cp mobile/build/app/outputs/flutter-apk/app-release.apk ./rppg_vital_signs.apk
+          echo "Locating built APK..."
+          find . -name "*.apk"
+          APK_FILE=$(find . -name "*release*.apk" -not -path "*/intermediates/*" | head -n 1)
+          if [ -z "$APK_FILE" ]; then
+            APK_FILE=$(find . -name "*.apk" -not -path "*/intermediates/*" | head -n 1)
+          fi
+          echo "Copying $APK_FILE to ./rppg_vital_signs.apk"
+          cp "$APK_FILE" ./rppg_vital_signs.apk
           ls -lh ./rppg_vital_signs.apk
 
       - name: Upload APK Artifact
