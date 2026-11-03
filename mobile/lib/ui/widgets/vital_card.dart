@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../models/vital_sign.dart';
+import '../../models/vital_sign.dart';
 import '../theme.dart';
 
 class VitalCard extends StatelessWidget {

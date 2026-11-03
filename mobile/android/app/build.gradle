@@ -6,7 +6,7 @@ plugins {
 
 android {
     namespace "com.bme.fyp.rppg_vital_signs"
-    compileSdk 34
+    compileSdk 35
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
@@ -24,7 +24,7 @@ android {
     defaultConfig {
         applicationId "com.bme.fyp.rppg_vital_signs"
         minSdkVersion 21
-        targetSdkVersion 34
+        targetSdkVersion 35
         versionCode 1
         versionName "1.0.0"
         multiDexEnabled true

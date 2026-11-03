@@ -11,6 +11,7 @@ class BiomedicalTheme {
   static const Color accentBlue = Color(0xFF3B82F6);
   static const Color slateGrey = Color(0xFF64748B);
   static const Color textMuted = Color(0xFF94A3B8);
+  static const Color backgroundDark = primaryNavy;
 
   static ThemeData get darkTheme {
     return ThemeData(
