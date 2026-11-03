@@ -42,7 +42,11 @@ jobs:
       - name: Build Android Release APK
         run: |
           cd mobile
-          flutter build apk --release --no-tree-shake-icons -v
+          if ! flutter build apk --release -v > build.log 2>&1; then
+            echo "::error::Flutter build failed. Showing log tail:"
+            tail -n 120 build.log
+            exit 1
+          fi
 
       - name: Copy APK to Root Staging
         run: |
