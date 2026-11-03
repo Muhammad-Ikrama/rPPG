@@ -5,6 +5,9 @@ on:
     branches: [ master, main ]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build-apk:
     name: Build Release APK
@@ -39,13 +42,32 @@ jobs:
       - name: Build Android Release APK
         run: |
           cd mobile
-          flutter build apk --release
+          flutter build apk --release --no-tree-shake-icons
+
+      - name: Copy APK to Root Staging
+        run: |
+          cp mobile/build/app/outputs/flutter-apk/app-release.apk ./rppg_vital_signs.apk
+          ls -lh ./rppg_vital_signs.apk
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: rppg-vital-signs-release-apk
-          path: mobile/build/app/outputs/flutter-apk/app-release.apk
+          path: ./rppg_vital_signs.apk
           if-no-files-found: error
-          retention-days: 14
+          retention-days: 30
 
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v1.0.0-apk
+          name: "rPPG Vital Signs Monitor v1.0.0 (Android APK)"
+          body: |
+            ### Automated Release Build
+            Standalone Android APK for the **rPPG Vital Signs Monitor** Final Year Project.
+            - Minimum Android SDK: 21 (Android 5.0+)
+            - Target Android SDK: 34 (Android 14)
+            - Includes camera, storage, and cloud synchronization permissions.
+          files: ./rppg_vital_signs.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
