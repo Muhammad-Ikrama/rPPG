@@ -32,6 +32,13 @@ class ApiService {
       Uri.parse('$baseUrl/api/v1/auth/login'),
       headers: _headers(),
       body: jsonEncode({'email': email, 'password': password}),
+    ).timeout(
+      const Duration(seconds: 4),
+      onTimeout: () => throw Exception(
+        'Server connection timeout to $baseUrl.\n'
+        '• If using a physical phone on Wi-Fi, change Server URL to http://192.168.100.103:8000\n'
+        '• Or tap "Instant Demo Mode" to test immediately without network.'
+      ),
     );
     if (response.statusCode != 200) {
       final err = jsonDecode(response.body);
@@ -55,6 +62,13 @@ class ApiService {
         'full_name': fullName,
         'consent_accepted': consent,
       }),
+    ).timeout(
+      const Duration(seconds: 4),
+      onTimeout: () => throw Exception(
+        'Server connection timeout to $baseUrl.\n'
+        '• If using a physical phone on Wi-Fi, change Server URL to http://192.168.100.103:8000\n'
+        '• Or tap "Instant Demo Mode" to test immediately without network.'
+      ),
     );
     if (response.statusCode != 200) {
       final err = jsonDecode(response.body);

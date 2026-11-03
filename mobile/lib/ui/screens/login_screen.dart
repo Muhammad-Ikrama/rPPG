@@ -143,6 +143,28 @@ class _LoginScreenState extends State<LoginScreen> {
                       : Text(_isRegister ? 'Register' : 'Sign In'),
                 ),
               ),
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: () async {
+                    await provider.runDemo();
+                    if (mounted) {
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(builder: (_) => const DashboardScreen()),
+                      );
+                    }
+                  },
+                  icon: const Icon(Icons.bolt, color: BiomedicalTheme.accentTeal),
+                  label: const Text('Instant Demo Mode (No Server Required)'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: BiomedicalTheme.accentTeal,
+                    side: const BorderSide(color: BiomedicalTheme.accentTeal),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                ),
+              ),
               const SizedBox(height: 16),
               Center(
                 child: TextButton(
@@ -157,9 +179,82 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
               ),
+              const SizedBox(height: 8),
+              Center(
+                child: TextButton.icon(
+                  onPressed: () => _showServerConfigDialog(context, provider),
+                  icon: const Icon(Icons.settings_ethernet, size: 16, color: BiomedicalTheme.slateGrey),
+                  label: Text(
+                    'Server: ${provider.apiService.baseUrl}',
+                    style: const TextStyle(fontSize: 12, color: BiomedicalTheme.slateGrey),
+                  ),
+                ),
+              ),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  void _showServerConfigDialog(BuildContext context, MeasurementProvider provider) {
+    final controller = TextEditingController(text: provider.apiService.baseUrl);
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: BiomedicalTheme.cardNavy,
+        title: const Text('Configure Backend Server URL', style: TextStyle(fontSize: 16)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'If testing on a physical phone via Wi-Fi, enter your PC local IP:',
+              style: TextStyle(fontSize: 12, color: BiomedicalTheme.textMuted),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: controller,
+              decoration: const InputDecoration(
+                labelText: 'Server URL',
+                hintText: 'http://192.168.100.103:8000',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 8,
+              children: [
+                ActionChip(
+                  label: const Text('PC Wi-Fi (192.168.100.103)', style: TextStyle(fontSize: 10)),
+                  onPressed: () => controller.text = 'http://192.168.100.103:8000',
+                ),
+                ActionChip(
+                  label: const Text('Emulator (10.0.2.2)', style: TextStyle(fontSize: 10)),
+                  onPressed: () => controller.text = 'http://10.0.2.2:8000',
+                ),
+                ActionChip(
+                  label: const Text('Localhost', style: TextStyle(fontSize: 10)),
+                  onPressed: () => controller.text = 'http://127.0.0.1:8000',
+                ),
+              ],
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              provider.apiService.setBaseUrl(controller.text.trim());
+              Navigator.pop(ctx);
+              setState(() {});
+            },
+            child: const Text('Save'),
+          ),
+        ],
       ),
     );
   }
