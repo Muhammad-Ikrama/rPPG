@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>rPPG Vital Signs Monitoring System | Biomedical Engineering</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <!-- Top Application Header -->
+  <header class="app-header">
+    <div class="brand-container">
+      <div class="brand-logo-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+        </svg>
+      </div>
+      <div class="brand-title">
+        <h1>rPPG Vital Signs Monitor</h1>
+        <p>Non-Contact Optical Physiology</p>
+      </div>
+    </div>
+
+    <div class="header-actions">
+      <div class="status-badge" id="backendStatusBadge">
+        <div class="status-dot"></div>
+        <span>Cloud Engine Ready</span>
+      </div>
+      <div class="user-profile-tag">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+          <circle cx="12" cy="7" r="4"></circle>
+        </svg>
+        <span id="userPseudonym">Connecting...</span>
+      </div>
+      <button class="btn btn-secondary" id="logoutBtn" style="padding: 0.35rem 0.75rem; font-size: 0.8rem;">Sign Out</button>
+    </div>
+  </header>
+
+  <!-- Navigation Bar -->
+  <nav class="nav-tabs">
+    <button class="nav-tab-btn active" data-tab="tab-dashboard">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="3" y="3" width="7" height="7"></rect>
+        <rect x="14" y="3" width="7" height="7"></rect>
+        <rect x="14" y="14" width="7" height="7"></rect>
+        <rect x="3" y="14" width="7" height="7"></rect>
+      </svg>
+      Vital Signs Dashboard
+    </button>
+    <button class="nav-tab-btn" data-tab="tab-measure">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+        <circle cx="12" cy="13" r="4"></circle>
+      </svg>
+      Start Measurement
+    </button>
+    <button class="nav-tab-btn" data-tab="tab-history">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"></circle>
+        <polyline points="12 6 12 12 16 14"></polyline>
+      </svg>
+      Measurement History
+    </button>
+    <button class="nav-tab-btn" data-tab="tab-datasets">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
+        <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path>
+        <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path>
+      </svg>
+      Research Datasets
+    </button>
+    <button class="nav-tab-btn" data-tab="tab-methodology">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"></circle>
+        <line x1="12" y1="16" x2="12" y2="12"></line>
+        <line x1="12" y1="8" x2="12.01" y2="8"></line>
+      </svg>
+      Methodology & Ethics
+    </button>
+  </nav>
+
+  <!-- Main Content Views -->
+  <main class="main-container">
+
+    <!-- VIEW 1: VITAL SIGNS DASHBOARD -->
+    <section class="tab-content active" id="tab-dashboard">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+        <div>
+          <h2 style="font-size: 1.5rem; font-weight: 700; color: #FFFFFF;">Real-Time Biomarker Dashboard</h2>
+          <p style="font-size: 0.85rem; color: var(--text-secondary);">Non-contact physiological parameters extracted via Plane-Orthogonal-to-Skin (POS) rPPG</p>
+        </div>
+        <div style="display: flex; gap: 0.75rem;">
+          <button class="btn btn-secondary" id="runDemoDashboardBtn">Run Instant Demo</button>
+          <button class="btn btn-secondary" id="exportCsvBtn">Export CSV</button>
+          <button class="btn btn-primary" id="exportPdfBtn">Download Clinical PDF</button>
+        </div>
+      </div>
+
+      <!-- 4 Dedicated Measurement Cards: HR, RR, SpO2, BP -->
+      <div class="vitals-grid">
+        <!-- 1. Heart Rate (HR) -->
+        <div class="vital-card" style="--card-accent: #00ADB5;">
+          <div class="card-header">
+            <div class="card-title-group">
+              <div class="vital-icon">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                </svg>
+              </div>
+              <span class="vital-label">Heart Rate</span>
+            </div>
+            <span class="vital-status-pill status-good" id="hrStatus">READY</span>
+          </div>
+          <div class="vital-value-container">
+            <span class="vital-value" id="hrValue">--</span>
+            <span class="vital-unit">BPM</span>
+          </div>
+          <div class="confidence-bar-wrapper">
+            <div class="confidence-label">
+              <span>Confidence</span>
+              <span id="hrConfidencePct">0%</span>
+            </div>
+            <div class="confidence-bar-track">
+              <div class="confidence-bar-fill" id="hrConfidenceFill" style="width: 0%;"></div>
+            </div>
+          </div>
+          <div class="vital-meta-row">
+            <span>Spectral Peak Analysis</span>
+            <span id="hrUncertainty">+/- 1.5 BPM</span>
+          </div>
+        </div>
+
+        <!-- 2. Respiratory Rate (RR) -->
+        <div class="vital-card" style="--card-accent: #3B82F6;">
+          <div class="card-header">
+            <div class="card-title-group">
+              <div class="vital-icon">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <path d="M7 16a4 4 0 0 1 8 0m-8-4a4 4 0 0 1 8 0m-8-4a4 4 0 0 1 8 0"></path>
+                </svg>
+              </div>
+              <span class="vital-label">Respiratory Rate</span>
+            </div>
+            <span class="vital-status-pill status-good" id="rrStatus">READY</span>
+          </div>
+          <div class="vital-value-container">
+            <span class="vital-value" id="rrValue">--</span>
+            <span class="vital-unit">BrPM</span>
+          </div>
+          <div class="confidence-bar-wrapper">
+            <div class="confidence-label">
+              <span>Modulation Coherence</span>
+              <span id="rrConfidencePct">0%</span>
+            </div>
+            <div class="confidence-bar-track">
+              <div class="confidence-bar-fill" id="rrConfidenceFill" style="width: 0%;"></div>
+            </div>
+          </div>
+          <div class="vital-meta-row">
+            <span>Thoracic Modulation</span>
+            <span id="rrUncertainty">+/- 2.0 BrPM</span>
+          </div>
+        </div>
+
+        <!-- 3. Oxygen Saturation (SpO2) -->
+        <div class="vital-card" style="--card-accent: #10B981;">
+          <div class="card-header">
+            <div class="card-title-group">
+              <div class="vital-icon">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path>
+                </svg>
+              </div>
+              <span class="vital-label">SpO2 (Research)</span>
+            </div>
+            <span class="vital-status-pill status-experimental" id="spo2Status">EXPERIMENTAL</span>
+          </div>
+          <div class="vital-value-container">
+            <span class="vital-value" id="spo2Value">--</span>
+            <span class="vital-unit">%</span>
+          </div>
+          <div class="confidence-bar-wrapper">
+            <div class="confidence-label">
+              <span>Optical RoR Quality</span>
+              <span id="spo2ConfidencePct">0%</span>
+            </div>
+            <div class="confidence-bar-track">
+              <div class="confidence-bar-fill" id="spo2ConfidenceFill" style="width: 0%;"></div>
+            </div>
+          </div>
+          <div class="experimental-banner">
+            RESEARCH PROXY: Conventional RGB cameras lack 940nm infrared LEDs. Uncalibrated ambient approximation.
+          </div>
+        </div>
+
+        <!-- 4. Blood Pressure (SBP / DBP) -->
+        <div class="vital-card" style="--card-accent: #F59E0B;">
+          <div class="card-header">
+            <div class="card-title-group">
+              <div class="vital-icon">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path>
+                </svg>
+              </div>
+              <span class="vital-label">Blood Pressure (Exp)</span>
+            </div>
+            <span class="vital-status-pill status-experimental" id="bpStatus">EXPERIMENTAL</span>
+          </div>
+          <div class="vital-value-container">
+            <span class="vital-value" id="bpValue">-- / --</span>
+            <span class="vital-unit">mmHg</span>
+          </div>
+          <div class="confidence-bar-wrapper">
+            <div class="confidence-label">
+              <span>Morphology Confidence</span>
+              <span id="bpConfidencePct">0%</span>
+            </div>
+            <div class="confidence-bar-track">
+              <div class="confidence-bar-fill" id="bpConfidenceFill" style="width: 0%;"></div>
+            </div>
+          </div>
+          <div class="experimental-banner">
+            ISO 81060-2 NOTICE: Experimental research objective based on pulse wave crest time. Not calibrated for clinical triage.
+          </div>
+        </div>
+      </div>
+
+      <!-- Charts & Quality Assessment Row -->
+      <div class="charts-row">
+        <!-- Reconstructed rPPG Waveform -->
+        <div class="panel-card">
+          <div class="panel-header">
+            <div class="panel-title">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-teal)" stroke-width="2">
+                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+              </svg>
+              Reconstructed rPPG Pulse Waveform (POS Algorithm)
+            </div>
+            <span style="font-size: 0.75rem; color: var(--text-muted);">Bandpass: 0.7 - 3.5 Hz</span>
+          </div>
+          <div class="chart-canvas-wrapper">
+            <canvas id="waveformCanvas" class="chart-canvas"></canvas>
+          </div>
+        </div>
+
+        <!-- Welch Power Spectral Density -->
+        <div class="panel-card">
+          <div class="panel-header">
+            <div class="panel-title">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-blue)" stroke-width="2">
+                <path d="M3 3v18h18"></path>
+                <path d="M18 17V9"></path>
+                <path d="M13 17V5"></path>
+                <path d="M8 17v-3"></path>
+              </svg>
+              Welch Power Spectrum
+            </div>
+            <span style="font-size: 0.75rem; color: var(--text-muted);">FFT Density</span>
+          </div>
+          <div class="chart-canvas-wrapper">
+            <canvas id="psdCanvas" class="chart-canvas"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Signal Quality & Optical Stability Panel -->
+      <div class="panel-card">
+        <div class="panel-header">
+          <div class="panel-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-teal)" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12 6 12 12 14 14"></polyline>
+            </svg>
+            Signal Quality Index (SQI) and Environmental Stability
+          </div>
+          <span class="quality-badge" id="sqiScore">--%</span>
+        </div>
+        <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1rem;" id="sqiGuidance">
+          Optimal positioning and steady illumination ensure high cardiac SNR.
+        </p>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+          <div class="quality-metric-item">
+            <div class="quality-metric-info">
+              <h4>Cardiac Peak SNR</h4>
+              <p>Harmonics to noise ratio</p>
+            </div>
+            <span class="quality-badge" id="snrDb">-- dB</span>
+          </div>
+          <div class="quality-metric-item">
+            <div class="quality-metric-info">
+              <h4>Motion Stability</h4>
+              <p>Facial displacement index</p>
+            </div>
+            <span class="quality-badge" id="motionStability">--%</span>
+          </div>
+          <div class="quality-metric-item">
+            <div class="quality-metric-info">
+              <h4>Illumination Stability</h4>
+              <p>Luminance drift coefficient</p>
+            </div>
+            <span class="quality-badge" id="illuminationStability">--%</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 2: START MEASUREMENT WORKSPACE -->
+    <section class="tab-content" id="tab-measure">
+      <div style="margin-bottom: 1.5rem;">
+        <h2 style="font-size: 1.5rem; font-weight: 700; color: #FFFFFF;">Live Video Acquisition</h2>
+        <p style="font-size: 0.85rem; color: var(--text-secondary);">Position your face inside the oval frame. Ensure consistent frontal illumination and minimize head movement.</p>
+      </div>
+
+      <div class="camera-workspace">
+        <!-- Live Camera Viewport -->
+        <div class="camera-preview-card">
+          <div class="camera-viewport">
+            <video id="cameraVideo" autoplay playsinline muted></video>
+            <canvas id="cameraCanvasOverlay"></canvas>
+            <div class="face-guidance-overlay" id="faceOval"></div>
+          </div>
+
+          <div class="guidance-banner" id="guidanceBanner">
+            Click "Start Camera" to initialize optical sensor.
+          </div>
+
+          <div style="font-size: 0.85rem; font-weight: 600; color: var(--accent-teal); margin-top: 0.75rem;" id="recordTimer">
+            Target Duration: 15 Seconds
+          </div>
+
+          <div class="camera-controls">
+            <button class="btn btn-secondary" id="toggleCameraBtn">Start Camera</button>
+            <button class="btn btn-primary" id="recordBtn" disabled>Start 15s Measurement</button>
+          </div>
+        </div>
+
+        <!-- Alternative: Upload Video or Instant Demo -->
+        <div>
+          <div class="upload-card">
+            <h3 style="font-size: 1.1rem; font-weight: 600; margin-bottom: 0.5rem; color: #FFFFFF;">Upload Pre-Recorded Video</h3>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1rem;">Upload recorded MP4, WebM, or AVI facial video for cloud rPPG extraction.</p>
+
+            <div class="drop-zone" id="dropZone">
+              <div class="drop-zone-icon">📁</div>
+              <h4 style="font-size: 0.9rem; font-weight: 600; margin-bottom: 0.25rem;">Drag & drop video file here</h4>
+              <p style="font-size: 0.75rem; color: var(--text-muted);">or click to browse filesystem</p>
+              <input type="file" id="videoFileInput" accept="video/mp4,video/webm,video/avi" style="display: none;">
+            </div>
+
+            <div style="text-align: center; margin: 1rem 0; color: var(--text-muted); font-size: 0.8rem;">— OR TEST PIPELINE INSTANTLY —</div>
+
+            <button class="btn btn-secondary btn-full" id="runDemoBtn">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="5 3 19 12 5 21 5 3"></polygon>
+              </svg>
+              Run Instant Physiological Demo
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 3: MEASUREMENT HISTORY -->
+    <section class="tab-content" id="tab-history">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+        <div>
+          <h2 style="font-size: 1.5rem; font-weight: 700; color: #FFFFFF;">Measurement History</h2>
+          <p style="font-size: 0.85rem; color: var(--text-secondary);">Chronological record of physiological sessions and validation exports.</p>
+        </div>
+        <button class="btn btn-secondary" id="refreshHistoryBtn">Refresh</button>
+      </div>
+
+      <div class="table-responsive">
+        <table class="history-table">
+          <thead>
+            <tr>
+              <th>Session</th>
+              <th>Recorded At</th>
+              <th>Heart Rate</th>
+              <th>Resp Rate</th>
+              <th>SpO2</th>
+              <th>BP (SBP/DBP)</th>
+              <th>Quality</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="historyTableBody">
+            <tr>
+              <td colspan="8" style="text-align: center; color: var(--text-muted); padding: 2rem;">Loading history...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- VIEW 4: RESEARCH DATASETS -->
+    <section class="tab-content" id="tab-datasets">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+        <div>
+          <h2 style="font-size: 1.5rem; font-weight: 700; color: #FFFFFF;">Public Benchmark Datasets</h2>
+          <p style="font-size: 0.85rem; color: var(--text-secondary);">Compatibility matrix and ground-truth validation across academic rPPG cohorts.</p>
+        </div>
+        <button class="btn btn-primary" id="runBenchmarkBtn">Run POS Algorithm Benchmark Sweep</button>
+      </div>
+
+      <div class="table-responsive" style="margin-bottom: 1.5rem;">
+        <table class="history-table">
+          <thead>
+            <tr>
+              <th>Dataset</th>
+              <th>Subjects</th>
+              <th>Camera Sensor</th>
+              <th>HR</th>
+              <th>RR</th>
+              <th>SpO2</th>
+              <th>BP</th>
+              <th>Benchmark Evaluation Focus</th>
+            </tr>
+          </thead>
+          <tbody id="datasetsTableBody">
+            <tr>
+              <td colspan="8" style="text-align: center; color: var(--text-muted); padding: 2rem;">Loading dataset matrix...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div id="benchmarkResultsContainer"></div>
+    </section>
+
+    <!-- VIEW 5: METHODOLOGY & ETHICS -->
+    <section class="tab-content" id="tab-methodology">
+      <div style="max-width: 900px; margin: 0 auto; line-height: 1.7;">
+        <h2 style="font-size: 1.6rem; font-weight: 700; margin-bottom: 1rem; color: #FFFFFF;">Scientific Methodology and Biomedical Integrity</h2>
+
+        <div class="panel-card" style="margin-bottom: 1.5rem;">
+          <h3 style="font-size: 1.15rem; color: var(--accent-teal); margin-bottom: 0.5rem;">1. Plane-Orthogonal-to-Skin (POS) Algorithm</h3>
+          <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 0.75rem;">
+            This system implements the algorithm formulated by Wang et al. (IEEE TBME 2017).
+            Spatial averaging of skin pixels over the forehead and cheeks extracts temporal RGB signals $C(t)$.
+            Within sliding windows of 1.6s duration, temporal normalization $C_n(t) = C(t)/\mu(C)$ isolates pulsatile changes.
+            The signal is projected onto a 2D plane orthogonal to the skin-tone reflection vector, yielding orthogonal components $S_1 = G_n - B_n$ and $S_2 = G_n + B_n - 2R_n$.
+            The dynamic combination $h = S_1 + (\sigma(S_1)/\sigma(S_2)) S_2$ cancels specular motion artifacts.
+          </p>
+        </div>
+
+        <div class="panel-card" style="margin-bottom: 1.5rem;">
+          <h3 style="font-size: 1.15rem; color: var(--accent-amber); margin-bottom: 0.5rem;">2. Blood Pressure (ISO 81060-2 Caveats)</h3>
+          <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 0.75rem;">
+            Continuous non-contact blood pressure estimation from optical facial video is an active experimental research objective.
+            Peripheral pulse morphology features (Crest Time, PW50, Augmentation Index surrogates) correlate with arterial compliance,
+            but strictly require paired sphygmomanometer calibration per subject.
+            This application never synthesizes default (120/80) values and clearly labels BP as experimental.
+          </p>
+        </div>
+
+        <div class="panel-card" style="margin-bottom: 1.5rem;">
+          <h3 style="font-size: 1.15rem; color: var(--accent-rose); margin-bottom: 0.5rem;">3. SpO2 Optical Sensor Limitations</h3>
+          <p style="font-size: 0.9rem; color: var(--text-secondary);">
+            Standard pulse oximetry operates using narrow-band dual emitters (660 nm Red and 940 nm Infrared).
+            Standard consumer webcams and smartphones possess IR-cut filters and broadband ambient lighting, which limits direct optical ratio-of-ratios determination.
+            Uncalibrated SpO2 readings are explicitly designated as experimental research approximations.
+          </p>
+        </div>
+
+        <div class="panel-card">
+          <h3 style="font-size: 1.15rem; color: var(--accent-green); margin-bottom: 0.5rem;">4. Biometric Data Privacy and Security</h3>
+          <p style="font-size: 0.9rem; color: var(--text-secondary);">
+            Facial video is sensitive biometric information. All participant data is pseudonymized using randomized Subject IDs.
+            Video files are stored securely with SHA-256 checksum verification and configured with automatic 7-day retention purging.
+            Videos are never shared with commercial third parties.
+          </p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Processing State Modal -->
+  <div class="modal-backdrop" id="processingModal">
+    <div class="modal-box">
+      <div class="spinner"></div>
+      <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem; color: #FFFFFF;">Processing Video</h3>
+      <p style="font-size: 0.9rem; color: var(--accent-teal);" id="processingStageText">Extracting facial landmarks and rPPG pulse signal...</p>
+    </div>
+  </div>
+
+  <!-- Authentication Modal -->
+  <div class="modal-backdrop" id="authModal">
+    <div class="auth-box">
+      <h3 style="font-size: 1.35rem; font-weight: 700; margin-bottom: 0.35rem; color: #FFFFFF;" id="authTitle">Sign In to rPPG System</h3>
+      <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1.5rem;">Non-Contact Biomedical Monitoring Access</p>
+
+      <form id="authForm">
+        <div class="form-group" id="nameGroup" style="display: none;">
+          <label class="form-label">Full Name / Researcher</label>
+          <input type="text" class="form-input" id="authFullName" placeholder="Dr. Jane Doe">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Email Address</label>
+          <input type="email" class="form-input" id="authEmail" required placeholder="researcher@university.edu" value="demo_researcher@fyp.edu">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <input type="password" class="form-input" id="authPassword" required placeholder="••••••••" value="ResearchPassword123!">
+        </div>
+
+        <div class="consent-checkbox-group" id="consentGroup" style="display: none;">
+          <input type="checkbox" id="authConsentCheckbox" checked>
+          <label for="authConsentCheckbox">
+            I understand this is a research vital-sign monitoring tool and consent to non-contact facial video acquisition under pseudonymized research protocols.
+          </label>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-full" id="authSubmitBtn" style="margin-top: 0.5rem;">Sign In</button>
+
+        <div style="text-align: center; margin-top: 1.25rem;">
+          <a href="#" id="authToggleLink" style="font-size: 0.8rem; color: var(--accent-teal); text-decoration: none;">Need an account? Register with consent</a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script src="js/camera.js"></script>
+  <script src="js/charts.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
