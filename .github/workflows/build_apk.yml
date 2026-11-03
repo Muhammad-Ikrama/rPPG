@@ -39,27 +39,25 @@ jobs:
           cd mobile
           flutter pub get
 
+      - name: Pre-configure Android local.properties
+        run: |
+          echo "flutter.sdk=$FLUTTER_ROOT" > mobile/android/local.properties
+          cat mobile/android/local.properties
+
       - name: Build Android Release APK
         run: |
           cd mobile
-          flutter build apk --release -v 2>&1 | tee ../build.log || (echo "### Build Failure Log" >> $GITHUB_STEP_SUMMARY && echo '```' >> $GITHUB_STEP_SUMMARY && tail -n 80 ../build.log >> $GITHUB_STEP_SUMMARY && echo '```' >> $GITHUB_STEP_SUMMARY && exit 1)
+          flutter build apk --release --no-tree-shake-icons
 
-      - name: Upload Build Log
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: flutter-build-log
-          path: build.log
-
-      - name: Copy APK to Root Staging
+      - name: Locate and Stage APK
         run: |
-          echo "Locating built APK..."
+          echo "Finding compiled APKs..."
           find . -name "*.apk"
           APK_FILE=$(find . -name "*release*.apk" -not -path "*/intermediates/*" | head -n 1)
           if [ -z "$APK_FILE" ]; then
             APK_FILE=$(find . -name "*.apk" -not -path "*/intermediates/*" | head -n 1)
           fi
-          echo "Copying $APK_FILE to ./rppg_vital_signs.apk"
+          echo "Selected APK: $APK_FILE"
           cp "$APK_FILE" ./rppg_vital_signs.apk
           ls -lh ./rppg_vital_signs.apk
 
