@@ -42,7 +42,7 @@ android {
 
     defaultConfig {
         applicationId "com.bme.fyp.rppg_vital_signs"
-        minSdkVersion 21
+        minSdkVersion flutter.minSdkVersion
         targetSdkVersion 34
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
