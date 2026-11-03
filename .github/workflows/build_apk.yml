@@ -42,11 +42,14 @@ jobs:
       - name: Build Android Release APK
         run: |
           cd mobile
-          if ! flutter build apk --release -v > build.log 2>&1; then
-            echo "::error::Flutter build failed. Showing log tail:"
-            tail -n 120 build.log
-            exit 1
-          fi
+          flutter build apk --release -v 2>&1 | tee ../build.log || (echo "### Build Failure Log" >> $GITHUB_STEP_SUMMARY && echo '```' >> $GITHUB_STEP_SUMMARY && tail -n 80 ../build.log >> $GITHUB_STEP_SUMMARY && echo '```' >> $GITHUB_STEP_SUMMARY && exit 1)
+
+      - name: Upload Build Log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: flutter-build-log
+          path: build.log
 
       - name: Copy APK to Root Staging
         run: |
