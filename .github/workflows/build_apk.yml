@@ -45,9 +45,22 @@ jobs:
           cat mobile/android/local.properties
 
       - name: Build Android Release APK
+        shell: bash
         run: |
+          set -o pipefail
           cd mobile
-          flutter build apk --release --no-tree-shake-icons
+          flutter build apk --release --no-tree-shake-icons 2>&1 | tee ../flutter_build.log
+
+      - name: Push Build Log on Failure
+        if: failure()
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -B build-log
+          cp flutter_build.log build_error.txt
+          git add build_error.txt
+          git commit -m "ci: capture build error log" || true
+          git push -f origin build-log || true
 
       - name: Locate and Stage APK
         run: |
