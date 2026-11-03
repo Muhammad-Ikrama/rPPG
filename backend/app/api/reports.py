@@ -108,3 +108,13 @@ async def download_pdf_report(
         media_type="application/pdf",
         filename=filename,
     )
+
+
+@router.get("/bland-altman/{parameter}")
+async def get_bland_altman_plot(parameter: str):
+    """Serves the generated Bland-Altman statistical agreement plot (hr, rr, spo2, bp)."""
+    clean_param = parameter.lower().replace("-", "_")
+    plot_path = os.path.join(settings.REPORTS_DIR, f"bland_altman_{clean_param}.png")
+    if not os.path.exists(plot_path):
+        raise HTTPException(status_code=404, detail=f"Bland-Altman plot for {parameter} not found. Run validation first.")
+    return FileResponse(path=plot_path, media_type="image/png")

@@ -31,6 +31,10 @@ htmlcov/
 # Local SQLite databases & temporary video storage
 *.db
 backend/rppg_local.db
+storage/videos/*
+!storage/videos/.gitkeep
+storage/reports/*
+!storage/reports/.gitkeep
 backend/storage/videos/*
 !backend/storage/videos/.gitkeep
 backend/storage/reports/*
@@ -43,6 +47,8 @@ mobile/.flutter-plugins-dependencies
 mobile/.packages
 mobile/build/
 mobile/android/.gradle
+mobile/android/app/.gradle/
+**/.gradle/
 mobile/android/local.properties
 mobile/ios/Pods/
 mobile/ios/.symlinks/

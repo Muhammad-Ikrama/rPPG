@@ -171,6 +171,53 @@ class RPPGApiClient {
       body: JSON.stringify({ test_bpm_values: bpmValues, snr_db: 10.0, duration_sec: 15.0 }),
     });
   }
+
+  // --- Deep Learning Models & Experiments ---
+  async listModelExperiments() {
+    return await this.request("/models/experiments");
+  }
+
+  async triggerModelTraining(params = {}) {
+    return await this.request("/models/train", {
+      method: "POST",
+      body: JSON.stringify({
+        experiment_name: params.experiment_name || "PhysNet_Cohort_Training",
+        num_epochs: params.num_epochs || 3,
+        num_subjects: params.num_subjects || 10,
+        batch_size: params.batch_size || 2,
+        learning_rate: params.learning_rate || 0.001,
+        random_seed: params.random_seed || 42,
+      }),
+    });
+  }
+
+  async compareAllAlgorithms(rgbSignals, fps = 30.0, referenceHr = null) {
+    return await this.request("/models/compare-all", {
+      method: "POST",
+      body: JSON.stringify({
+        rgb_signals: rgbSignals,
+        fps: fps,
+        reference_hr_bpm: referenceHr,
+      }),
+    });
+  }
+
+  // --- Group Data Collection & Statistical Validation ---
+  async listParticipants() {
+    return await this.request("/cohort/participants");
+  }
+
+  async seedCohort() {
+    return await this.request("/cohort/seed-50-participant-cohort", { method: "POST" });
+  }
+
+  async getPairedRecordings() {
+    return await this.request("/cohort/recordings");
+  }
+
+  async runCohortValidation() {
+    return await this.request("/cohort/validate-all", { method: "POST" });
+  }
 }
 
 window.apiClient = new RPPGApiClient();

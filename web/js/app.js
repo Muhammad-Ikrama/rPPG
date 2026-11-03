@@ -198,6 +198,10 @@ document.addEventListener("DOMContentLoaded", () => {
         loadHistory();
       } else if (targetId === "tab-datasets") {
         loadDatasets();
+      } else if (targetId === "tab-models") {
+        loadExperiments();
+      } else if (targetId === "tab-cohort") {
+        loadCohortSummary();
       }
     });
   });
@@ -539,6 +543,186 @@ document.addEventListener("DOMContentLoaded", () => {
       } finally {
         runBenchmarkBtn.disabled = false;
         runBenchmarkBtn.textContent = "Run POS Algorithm Benchmark Sweep";
+      }
+    });
+  }
+
+  // --- Deep Learning Models & Experiments ---
+  const experimentsTableBody = document.getElementById("experimentsTableBody");
+  const startTrainingBtn = document.getElementById("startTrainingBtn");
+  const runCompareAllBtn = document.getElementById("runCompareAllBtn");
+  const compareResultsCard = document.getElementById("compareResultsCard");
+  const compareSummaryText = document.getElementById("compareSummaryText");
+  const compareTableBody = document.getElementById("compareTableBody");
+
+  async function loadExperiments() {
+    if (!experimentsTableBody) return;
+    try {
+      const experiments = await api.listModelExperiments();
+      experimentsTableBody.innerHTML = "";
+      if (!experiments || experiments.length === 0) {
+        experimentsTableBody.innerHTML = `<tr><td colspan="7" style="padding: 1.5rem; text-align: center; color: var(--text-muted);">No training experiments executed yet. Click "Launch PhysNet Training Run" to start.</td></tr>`;
+        return;
+      }
+      experiments.forEach((exp) => {
+        const row = document.createElement("tr");
+        row.style.borderBottom = "1px solid rgba(255,255,255,0.05)";
+        row.innerHTML = `
+          <td style="padding: 0.65rem;"><strong>${exp.experiment_id}</strong><br><small style="color: var(--text-muted);">${exp.experiment_name}</small></td>
+          <td style="padding: 0.65rem; color: var(--accent-teal);">${exp.model_architecture}</td>
+          <td style="padding: 0.65rem;">${exp.hyperparameters ? exp.hyperparameters.epochs : 1}</td>
+          <td style="padding: 0.65rem; color: var(--accent-green);">${exp.final_metrics ? exp.final_metrics.best_val_loss : "N/A"}</td>
+          <td style="padding: 0.65rem;">${exp.final_metrics ? exp.final_metrics.test_loss : "N/A"}</td>
+          <td style="padding: 0.65rem;"><span style="color: ${exp.artifacts && exp.artifacts.onnx_exported ? 'var(--accent-green)' : 'var(--accent-rose)'};">${exp.artifacts && exp.artifacts.onnx_exported ? '✓ Exported' : '✗ None'}</span></td>
+          <td style="padding: 0.65rem;"><span class="badge" style="background: rgba(16,185,129,0.15); color: #10B981; padding: 0.2rem 0.5rem; border-radius: 4px;">${exp.status}</span></td>
+        `;
+        experimentsTableBody.appendChild(row);
+      });
+    } catch (e) {
+      console.error("Failed to load experiments:", e);
+    }
+  }
+
+  if (startTrainingBtn) {
+    startTrainingBtn.addEventListener("click", async () => {
+      startTrainingBtn.disabled = true;
+      startTrainingBtn.innerHTML = `<span class="spinner" style="width: 14px; height: 14px; display: inline-block; margin-right: 0.35rem;"></span> Training PhysNet on GPU/CPU...`;
+      try {
+        const res = await api.triggerModelTraining({
+          experiment_name: `PhysNet_Run_${Date.now().toString().slice(-4)}`,
+          num_epochs: 2,
+          num_subjects: 6,
+          batch_size: 2,
+        });
+        alert(`Training Experiment ${res.experiment_id} completed successfully!\nBest Val Loss: ${res.final_metrics.best_val_loss}\nONNX Artifact: ${res.artifacts.onnx_path}`);
+        loadExperiments();
+      } catch (e) {
+        alert(`Training failed: ${e.message}`);
+      } finally {
+        startTrainingBtn.disabled = false;
+        startTrainingBtn.innerHTML = `<polygon points="5 3 19 12 5 21 5 3"></polygon> Launch PhysNet Training Run`;
+      }
+    });
+  }
+
+  if (runCompareAllBtn) {
+    runCompareAllBtn.addEventListener("click", async () => {
+      runCompareAllBtn.disabled = true;
+      runCompareAllBtn.textContent = "Benchmarking 5 Algorithms...";
+      try {
+        // Synthesize 15s test RGB stream for head-to-head comparison
+        const fps = 30.0;
+        const nFrames = 450;
+        const targetHr = 72.0;
+        const rgbStream = [];
+        for (let i = 0; i < nFrames; i++) {
+          const t = i / fps;
+          const pulse = Math.sin(2 * Math.PI * (targetHr / 60) * t);
+          rgbStream.push([180 + pulse * 2, 130 + pulse * 4, 110 + pulse * 1]);
+        }
+
+        const res = await api.compareAllAlgorithms(rgbStream, fps, targetHr);
+        compareResultsCard.style.display = "block";
+        compareSummaryText.textContent = `Ensemble Median HR: ${res.ensemble_median_hr_bpm} BPM | Cross-Algorithm Agreement STD: ${res.inter_algorithm_agreement_std_bpm} BPM | Reference Ground Truth: ${targetHr} BPM`;
+
+        compareTableBody.innerHTML = "";
+        for (const [name, r] of Object.entries(res.algorithms)) {
+          const row = document.createElement("tr");
+          row.style.borderBottom = "1px solid rgba(255,255,255,0.05)";
+          row.innerHTML = `
+            <td style="padding: 0.65rem;"><strong>${name}</strong></td>
+            <td style="padding: 0.65rem; color: var(--accent-teal); font-weight: 600;">${r.heart_rate_bpm !== null ? r.heart_rate_bpm + ' BPM' : 'N/A'}</td>
+            <td style="padding: 0.65rem; color: ${r.error_against_reference_bpm !== null && r.error_against_reference_bpm <= 2.5 ? 'var(--accent-green)' : 'var(--accent-amber)'};">${r.error_against_reference_bpm !== null ? r.error_against_reference_bpm + ' BPM' : 'N/A'}</td>
+            <td style="padding: 0.65rem;">${r.snr_db ? r.snr_db.toFixed(1) : 'N/A'}</td>
+            <td style="padding: 0.65rem;">${r.confidence ? Math.round(r.confidence * 100) + '%' : 'N/A'}</td>
+            <td style="padding: 0.65rem; color: var(--text-muted);">${r.execution_time_ms ? r.execution_time_ms + ' ms' : '< 50 ms'}</td>
+            <td style="padding: 0.65rem;"><span class="badge" style="background: rgba(16,185,129,0.15); color: #10B981; padding: 0.2rem 0.5rem; border-radius: 4px;">${r.status}</span></td>
+          `;
+          compareTableBody.appendChild(row);
+        }
+      } catch (e) {
+        alert(`Comparison failed: ${e.message}`);
+      } finally {
+        runCompareAllBtn.disabled = false;
+        runCompareAllBtn.textContent = "Run 5-Method Comparison Benchmark";
+      }
+    });
+  }
+
+  // --- 50-Participant Cohort & Validation ---
+  const seedCohortBtn = document.getElementById("seedCohortBtn");
+  const runValidationBtn = document.getElementById("runValidationBtn");
+  const cohortTotalSubjsEl = document.getElementById("cohortTotalSubjs");
+  const validationResultsSection = document.getElementById("validationResultsSection");
+  const hrValidationStats = document.getElementById("hrValidationStats");
+  const hrBlandAltmanPlot = document.getElementById("hrBlandAltmanPlot");
+  const rrValidationStats = document.getElementById("rrValidationStats");
+  const rrBlandAltmanPlot = document.getElementById("rrBlandAltmanPlot");
+  const spo2ValidationStats = document.getElementById("spo2ValidationStats");
+  const spo2BlandAltmanPlot = document.getElementById("spo2BlandAltmanPlot");
+  const bpValidationStats = document.getElementById("bpValidationStats");
+  const bpBlandAltmanPlot = document.getElementById("bpBlandAltmanPlot");
+
+  async function loadCohortSummary() {
+    try {
+      const res = await api.getPairedRecordings();
+      if (cohortTotalSubjsEl) cohortTotalSubjsEl.textContent = res.total_recordings || 0;
+    } catch (e) {
+      console.error("Failed to load cohort summary:", e);
+    }
+  }
+
+  if (seedCohortBtn) {
+    seedCohortBtn.addEventListener("click", async () => {
+      seedCohortBtn.disabled = true;
+      seedCohortBtn.textContent = "Seeding 50 Subjects...";
+      try {
+        const res = await api.seedCohort();
+        alert(`Cohort Protocol: ${res.message || 'Seeded 50 paired participant records successfully!'}`);
+        loadCohortSummary();
+      } catch (e) {
+        alert(`Seeding failed: ${e.message}`);
+      } finally {
+        seedCohortBtn.disabled = false;
+        seedCohortBtn.textContent = "Seed 50-Subject Protocol";
+      }
+    });
+  }
+
+  if (runValidationBtn) {
+    runValidationBtn.addEventListener("click", async () => {
+      runValidationBtn.disabled = true;
+      runValidationBtn.textContent = "Computing Bland-Altman Agreement...";
+      try {
+        const res = await api.runCohortValidation();
+        validationResultsSection.style.display = "block";
+
+        const p = res.parameters;
+        // HR
+        const hr = p.heart_rate.metrics;
+        hrValidationStats.innerHTML = `<strong>MAE:</strong> ${hr.mae} BPM | <strong>RMSE:</strong> ${hr.rmse} BPM | <strong>Pearson r:</strong> ${hr.pearson_r} | <strong>Bias:</strong> ${hr.mean_error_bias} BPM<br><strong>95% Limits of Agreement:</strong> [${hr.bland_altman.lower_loa}, ${hr.bland_altman.upper_loa}] BPM`;
+        hrBlandAltmanPlot.src = `/api/v1/reports/bland-altman/hr?t=${Date.now()}`;
+
+        // RR
+        const rr = p.respiratory_rate.metrics;
+        rrValidationStats.innerHTML = `<strong>MAE:</strong> ${rr.mae} BrPM | <strong>RMSE:</strong> ${rr.rmse} BrPM | <strong>Pearson r:</strong> ${rr.pearson_r} | <strong>Bias:</strong> ${rr.mean_error_bias} BrPM<br><strong>95% Limits of Agreement:</strong> [${rr.bland_altman.lower_loa}, ${rr.bland_altman.upper_loa}] BrPM`;
+        rrBlandAltmanPlot.src = `/api/v1/reports/bland-altman/rr?t=${Date.now()}`;
+
+        // SpO2
+        const spo2 = p.spo2.metrics;
+        spo2ValidationStats.innerHTML = `<strong>MAE:</strong> ${spo2.mae}% | <strong>RMSE:</strong> ${spo2.rmse}% | <strong>Pearson r:</strong> ${spo2.pearson_r}<br><em style="color: var(--accent-rose); font-size: 0.75rem;">Experimental proxy: Bayer filter optical limitations documented</em>`;
+        spo2BlandAltmanPlot.src = `/api/v1/reports/bland-altman/spo2?t=${Date.now()}`;
+
+        // BP
+        const bp = p.blood_pressure.metrics;
+        bpValidationStats.innerHTML = `<strong>MAE:</strong> ${bp.mae} mmHg | <strong>RMSE:</strong> ${bp.rmse} mmHg | <strong>Pearson r:</strong> ${bp.pearson_r}<br><em style="color: var(--accent-amber); font-size: 0.75rem;">Experimental proxy: ISO 81060-2 paired cuff calibration required</em>`;
+        bpBlandAltmanPlot.src = `/api/v1/reports/bland-altman/bp?t=${Date.now()}`;
+
+      } catch (e) {
+        alert(`Validation failed: ${e.message}`);
+      } finally {
+        runValidationBtn.disabled = false;
+        runValidationBtn.textContent = "Compute Bland-Altman Agreement";
       }
     });
   }

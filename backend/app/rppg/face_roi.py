@@ -59,10 +59,15 @@ class FaceROIExtractor:
         self.ema_alpha = ema_alpha
         self.prev_landmarks: Optional[np.ndarray] = None
         self.prev_center: Optional[Tuple[float, float]] = None
-
-        # Try initializing MediaPipe Face Mesh
+        self._mesh_initialized = False
         self.use_mediapipe = False
         self.face_mesh = None
+        self.face_cascade = None
+
+    def _ensure_face_mesh(self):
+        if self._mesh_initialized:
+            return
+        self._mesh_initialized = True
         try:
             import mediapipe as mp
             self.mp_face_mesh = mp.solutions.face_mesh
@@ -77,10 +82,11 @@ class FaceROIExtractor:
         except Exception:
             self.use_mediapipe = False
 
-        # OpenCV Haar Cascade fallback
-        self.face_cascade = cv2.CascadeClassifier(
-            cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
-        )
+        try:
+            cascade_path = cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
+            self.face_cascade = cv2.CascadeClassifier(cascade_path)
+        except Exception:
+            self.face_cascade = None
 
     def extract_from_frame(
         self,
@@ -100,6 +106,7 @@ class FaceROIExtractor:
             - face_detected: Boolean
             - quality_score: ROI stability and visibility score [0, 1]
         """
+        self._ensure_face_mesh()
         h, w = bgr_frame.shape[:2]
         skin_mask = segment_skin_ycrcb(bgr_frame)
 

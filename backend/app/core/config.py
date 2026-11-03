@@ -4,7 +4,11 @@ Configuration and Environment Settings for rPPG Monitoring Backend.
 
 from typing import List
 import os
+import tempfile
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+# Ensure Matplotlib config directory is in writable temp to avoid Windows permission warning and import delay
+os.environ.setdefault("MPLCONFIGDIR", os.path.join(tempfile.gettempdir(), "matplotlib"))
 
 
 class Settings(BaseSettings):

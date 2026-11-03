@@ -141,9 +141,9 @@ def estimate_respiratory_rate(
 
     confidence = float(np.clip((snr_resp - 1.5) / 5.0 * (0.6 + 0.4 * coherence), 0.0, 0.95))
 
-    if confidence >= 0.60:
+    if confidence >= 0.55:
         status = "GOOD"
-    elif confidence >= 0.35:
+    elif confidence >= 0.25:
         status = "FAIR"
     else:
         status = "LOW_CONFIDENCE"

@@ -52,8 +52,26 @@ In `mobile/lib/services/api_service.dart` or via the mobile **Settings Screen**:
 * **Cloud Production**: `https://your-api-domain.com`
 
 ### 2.3 Build Installable Android APK
-To generate a release-ready standalone APK:
+
+#### Method 1: 100% Free Cloud Build via GitHub Actions (Recommended - No Local Tools Needed)
+The project includes a ready-to-run GitHub Actions workflow in [`.github/workflows/build_apk.yml`](file:///d:/BME/FYP/.github/workflows/build_apk.yml):
+1. Push your repository to GitHub (`git push origin master`).
+2. Go to your repository on GitHub and click the **Actions** tab.
+3. Select **Build Android APK (rPPG Vital Signs)** and click **Run workflow**.
+4. Once completed (~3 minutes), download the ready-to-install **`rppg-vital-signs-release-apk`** directly from the **Artifacts** section!
+
+#### Method 2: 1-Click Cloud Build via Google Colab & Google Drive
+Open [`notebooks/build_flutter_apk_colab.ipynb`](file:///d:/BME/FYP/notebooks/build_flutter_apk_colab.ipynb) in Google Colab:
+1. Connects to a free cloud runtime.
+2. Automatically installs the Flutter Linux SDK.
+3. Compiles `mobile/build/app/outputs/flutter-apk/app-release.apk`.
+4. Saves the APK directly to your Google Drive (`RPPG_FYP/mobile_apk/`) and automatically triggers a browser download.
+
+#### Method 3: Local Windows Build (Requires Flutter SDK installed)
+If Flutter is installed on your local machine:
 ```bash
+cd mobile
+flutter pub get
 flutter build apk --release
 ```
 * Output location: `mobile/build/app/outputs/flutter-apk/app-release.apk`

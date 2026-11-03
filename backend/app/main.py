@@ -16,6 +16,8 @@ from app.api.measurements import router as measurements_router
 from app.api.stream import router as stream_router
 from app.api.reports import router as reports_router
 from app.api.datasets import router as datasets_router
+from app.api.dl_models import router as dl_models_router
+from app.api.cohort import router as cohort_router
 
 
 @asynccontextmanager
@@ -54,6 +56,8 @@ app.include_router(measurements_router, prefix=settings.API_V1_PREFIX)
 app.include_router(stream_router, prefix=settings.API_V1_PREFIX)
 app.include_router(reports_router, prefix=settings.API_V1_PREFIX)
 app.include_router(datasets_router, prefix=settings.API_V1_PREFIX)
+app.include_router(dl_models_router, prefix=settings.API_V1_PREFIX)
+app.include_router(cohort_router, prefix=settings.API_V1_PREFIX)
 
 # Healthcheck
 @app.get("/health", tags=["Health"])

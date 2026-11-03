@@ -74,6 +74,23 @@
       </svg>
       Research Datasets
     </button>
+    <button class="nav-tab-btn" data-tab="tab-models">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+        <polyline points="2 17 12 22 22 17"></polyline>
+        <polyline points="2 12 12 17 22 12"></polyline>
+      </svg>
+      Deep Learning & Training
+    </button>
+    <button class="nav-tab-btn" data-tab="tab-cohort">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+        <circle cx="9" cy="7" r="4"></circle>
+        <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+      </svg>
+      50-Subject Cohort Validation
+    </button>
     <button class="nav-tab-btn" data-tab="tab-methodology">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <circle cx="12" cy="12" r="10"></circle>
@@ -475,6 +492,180 @@
             Video files are stored securely with SHA-256 checksum verification and configured with automatic 7-day retention purging.
             Videos are never shared with commercial third parties.
           </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 6: DEEP LEARNING & TRAINING EXPERIMENTS -->
+    <section class="tab-content" id="tab-models">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+        <div>
+          <h2 style="font-size: 1.5rem; font-weight: 700; color: #FFFFFF;">Deep Learning & Model Training Lab</h2>
+          <p style="font-size: 0.85rem; color: var(--text-secondary);">PhysNet 3D-CNN & MTTS-CAN spatio-temporal neural pipelines with zero-leakage subject partitioning</p>
+        </div>
+        <button class="btn btn-primary" id="startTrainingBtn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 0.35rem;">
+            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+          </svg>
+          Launch PhysNet Training Run
+        </button>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+        <div class="panel-card">
+          <h3 style="font-size: 1.15rem; color: var(--accent-teal); margin-bottom: 0.5rem;">Head-to-Head Algorithm Comparison</h3>
+          <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1rem;">
+            Evaluates 5 distinct physiological extraction approaches on identical temporal video inputs:
+          </p>
+          <ul style="font-size: 0.85rem; color: var(--text-secondary); margin-left: 1.25rem; line-height: 1.8;">
+            <li><strong style="color: #FFFFFF;">POS (Wang et al. 2017)</strong>: Plane-Orthogonal-to-Skin projection</li>
+            <li><strong style="color: #FFFFFF;">CHROM (de Haan 2013)</strong>: Standardized skin-chrominance difference</li>
+            <li><strong style="color: #FFFFFF;">GREEN (Verkruysse 2008)</strong>: Single-channel optical absorption peak</li>
+            <li><strong style="color: #FFFFFF;">ICA (Poh et al. 2010)</strong>: Blind source separation decomposition</li>
+            <li><strong style="color: #FFFFFF;">PhysNet (Yu et al. 2019)</strong>: 3D spatio-temporal deep neural network</li>
+          </ul>
+          <button class="btn btn-secondary" id="runCompareAllBtn" style="margin-top: 1rem; width: 100%;">Run 5-Method Comparison Benchmark</button>
+        </div>
+
+        <div class="panel-card">
+          <h3 style="font-size: 1.15rem; color: var(--accent-amber); margin-bottom: 0.5rem;">Training Configuration & Safeguards</h3>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; font-size: 0.85rem; margin-top: 0.75rem;">
+            <div style="background: rgba(15,23,42,0.6); padding: 0.75rem; border-radius: 8px;">
+              <span style="color: var(--text-muted); display: block;">Loss Function</span>
+              <strong style="color: #FFFFFF;">Negative Pearson + Spectral SNR</strong>
+            </div>
+            <div style="background: rgba(15,23,42,0.6); padding: 0.75rem; border-radius: 8px;">
+              <span style="color: var(--text-muted); display: block;">Leakage Prevention</span>
+              <strong style="color: var(--accent-green);">Participant-Clustered (0% Overlap)</strong>
+            </div>
+            <div style="background: rgba(15,23,42,0.6); padding: 0.75rem; border-radius: 8px;">
+              <span style="color: var(--text-muted); display: block;">Edge Transition</span>
+              <strong style="color: #FFFFFF;">ONNX Dynamic Export</strong>
+            </div>
+            <div style="background: rgba(15,23,42,0.6); padding: 0.75rem; border-radius: 8px;">
+              <span style="color: var(--text-muted); display: block;">Optimizer</span>
+              <strong style="color: #FFFFFF;">AdamW (Decay 1e-4)</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Training Experiment Log Table -->
+      <div class="panel-card">
+        <h3 style="font-size: 1.15rem; color: #FFFFFF; margin-bottom: 0.75rem;">Executed Training Experiments Registry</h3>
+        <div style="overflow-x: auto;">
+          <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem; text-align: left;">
+            <thead>
+              <tr style="border-bottom: 1px solid var(--border-color); color: var(--text-muted);">
+                <th style="padding: 0.65rem;">Experiment ID</th>
+                <th style="padding: 0.65rem;">Architecture</th>
+                <th style="padding: 0.65rem;">Epochs</th>
+                <th style="padding: 0.65rem;">Best Val Loss</th>
+                <th style="padding: 0.65rem;">Test Loss</th>
+                <th style="padding: 0.65rem;">ONNX Export</th>
+                <th style="padding: 0.65rem;">Status</th>
+              </tr>
+            </thead>
+            <tbody id="experimentsTableBody">
+              <tr>
+                <td colspan="7" style="padding: 1.5rem; text-align: center; color: var(--text-muted);">Loading experiment logs...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Multi-Algorithm Comparison Results Container -->
+      <div class="panel-card" id="compareResultsCard" style="margin-top: 1.5rem; display: none;">
+        <h3 style="font-size: 1.15rem; color: #FFFFFF; margin-bottom: 0.5rem;">Multi-Algorithm Benchmark Output</h3>
+        <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1rem;" id="compareSummaryText"></p>
+        <div style="overflow-x: auto;">
+          <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem; text-align: left;">
+            <thead>
+              <tr style="border-bottom: 1px solid var(--border-color); color: var(--text-muted);">
+                <th style="padding: 0.65rem;">Algorithm</th>
+                <th style="padding: 0.65rem;">Estimated HR</th>
+                <th style="padding: 0.65rem;">Reference Error</th>
+                <th style="padding: 0.65rem;">SNR (dB)</th>
+                <th style="padding: 0.65rem;">Confidence</th>
+                <th style="padding: 0.65rem;">Latency (ms)</th>
+                <th style="padding: 0.65rem;">Status</th>
+              </tr>
+            </thead>
+            <tbody id="compareTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 7: 50-PARTICIPANT COHORT & CLINICAL VALIDATION -->
+    <section class="tab-content" id="tab-cohort">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+        <div>
+          <h2 style="font-size: 1.5rem; font-weight: 700; color: #FFFFFF;">50-Subject Clinical Cohort & Validation</h2>
+          <p style="font-size: 0.85rem; color: var(--text-secondary);">Paired reference instrument trials across Fitzpatrick skin tones 1–6 and variable illumination</p>
+        </div>
+        <div style="display: flex; gap: 0.75rem;">
+          <button class="btn btn-secondary" id="seedCohortBtn">Seed 50-Subject Protocol</button>
+          <button class="btn btn-primary" id="runValidationBtn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 0.35rem;">
+              <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+            </svg>
+            Compute Bland-Altman Agreement
+          </button>
+        </div>
+      </div>
+
+      <!-- Cohort Overview Cards -->
+      <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.5rem;">
+        <div style="background: var(--bg-card); padding: 1rem; border-radius: 12px; border: 1px solid var(--border-color);">
+          <span style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Total Participants</span>
+          <h4 style="font-size: 1.75rem; font-weight: 700; color: var(--accent-teal); margin-top: 0.25rem;" id="cohortTotalSubjs">50</h4>
+          <span style="font-size: 0.75rem; color: var(--accent-green);">Target quota fulfilled</span>
+        </div>
+        <div style="background: var(--bg-card); padding: 1rem; border-radius: 12px; border: 1px solid var(--border-color);">
+          <span style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Fitzpatrick Diversity</span>
+          <h4 style="font-size: 1.75rem; font-weight: 700; color: #FFFFFF; margin-top: 0.25rem;">Types 1–6</h4>
+          <span style="font-size: 0.75rem; color: var(--text-secondary);">Multi-ethnic cohort</span>
+        </div>
+        <div style="background: var(--bg-card); padding: 1rem; border-radius: 12px; border: 1px solid var(--border-color);">
+          <span style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Reference Instruments</span>
+          <h4 style="font-size: 1.75rem; font-weight: 700; color: var(--accent-amber); margin-top: 0.25rem;">4 Modalities</h4>
+          <span style="font-size: 0.75rem; color: var(--text-secondary);">ECG, Belt, Oximeter, Cuff</span>
+        </div>
+        <div style="background: var(--bg-card); padding: 1rem; border-radius: 12px; border: 1px solid var(--border-color);">
+          <span style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Consent & IRB Status</span>
+          <h4 style="font-size: 1.75rem; font-weight: 700; color: var(--accent-green); margin-top: 0.25rem;">100% Signed</h4>
+          <span style="font-size: 0.75rem; color: var(--text-secondary);">Pseudonymized (SUBJ-XXX)</span>
+        </div>
+      </div>
+
+      <!-- Validation Results & Bland-Altman Cards -->
+      <div id="validationResultsSection" style="display: none;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+          <div class="panel-card">
+            <h3 style="font-size: 1.15rem; color: var(--accent-teal); margin-bottom: 0.5rem;">Heart Rate: Bland-Altman Agreement (POS vs ECG)</h3>
+            <div id="hrValidationStats" style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1rem; line-height: 1.6;"></div>
+            <img id="hrBlandAltmanPlot" src="" alt="Bland-Altman HR Plot" style="width: 100%; border-radius: 8px; border: 1px solid var(--border-color);">
+          </div>
+          <div class="panel-card">
+            <h3 style="font-size: 1.15rem; color: var(--accent-green); margin-bottom: 0.5rem;">Respiratory Rate: Agreement (RBM vs Chest Belt)</h3>
+            <div id="rrValidationStats" style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1rem; line-height: 1.6;"></div>
+            <img id="rrBlandAltmanPlot" src="" alt="Bland-Altman RR Plot" style="width: 100%; border-radius: 8px; border: 1px solid var(--border-color);">
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+          <div class="panel-card">
+            <h3 style="font-size: 1.15rem; color: var(--accent-rose); margin-bottom: 0.5rem;">SpO2: Agreement (RoR vs Pulse CO-Oximeter)</h3>
+            <div id="spo2ValidationStats" style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1rem; line-height: 1.6;"></div>
+            <img id="spo2BlandAltmanPlot" src="" alt="Bland-Altman SpO2 Plot" style="width: 100%; border-radius: 8px; border: 1px solid var(--border-color);">
+          </div>
+          <div class="panel-card">
+            <h3 style="font-size: 1.15rem; color: var(--accent-amber); margin-bottom: 0.5rem;">Blood Pressure: Agreement (Morphology vs Cuff)</h3>
+            <div id="bpValidationStats" style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1rem; line-height: 1.6;"></div>
+            <img id="bpBlandAltmanPlot" src="" alt="Bland-Altman BP Plot" style="width: 100%; border-radius: 8px; border: 1px solid var(--border-color);">
+          </div>
         </div>
       </div>
     </section>

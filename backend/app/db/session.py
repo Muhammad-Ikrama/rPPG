@@ -38,5 +38,12 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
 
 async def init_db() -> None:
     """Creates database tables on application startup."""
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+    if "sqlite" in settings.DATABASE_URL:
+        # Use sync engine to create tables to avoid Windows aiosqlite thread deadlocks
+        from sqlalchemy import create_engine
+        sync_url = settings.DATABASE_URL.replace("+aiosqlite", "")
+        sync_engine = create_engine(sync_url, connect_args={"check_same_thread": False})
+        Base.metadata.create_all(sync_engine)
+    else:
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
