@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../core/api_config.dart';
 import '../../providers/measurement_provider.dart';
 import '../theme.dart';
 import 'dashboard_screen.dart';
@@ -16,7 +17,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _passwordController = TextEditingController(text: 'ResearchPassword123!');
   final _nameController = TextEditingController();
   bool _isRegister = false;
-  bool _consent = true;
+  bool _consent = false; // Strictly unchecked by default for biomedical research protocol
 
   @override
   Widget build(BuildContext context) {
@@ -77,30 +78,55 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               if (_isRegister) ...[
                 const SizedBox(height: 16),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Checkbox(
-                      value: _consent,
-                      activeColor: BiomedicalTheme.accentTeal,
-                      onChanged: (v) => setState(() => _consent = v ?? false),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: BiomedicalTheme.cardNavy,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: _consent ? BiomedicalTheme.accentTeal : Colors.white24,
                     ),
-                    const Expanded(
-                      child: Text(
-                        'I consent to facial video recording under biomedical research protocols and pseudonymized ID storage.',
-                        style: TextStyle(fontSize: 11, color: Colors.white70),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Checkbox(
+                        value: _consent,
+                        activeColor: BiomedicalTheme.accentTeal,
+                        onChanged: (v) => setState(() => _consent = v ?? false),
                       ),
-                    ),
-                  ],
+                      const Expanded(
+                        child: Text(
+                          'I consent to facial video recording under biomedical research protocols and pseudonymized ID storage for vital sign estimation.',
+                          style: TextStyle(fontSize: 12, color: Colors.white70),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ],
               const SizedBox(height: 24),
               if (provider.errorMessage != null)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 16.0),
-                  child: Text(
-                    provider.errorMessage!,
-                    style: const TextStyle(color: BiomedicalTheme.accentRose, fontSize: 13),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  margin: const EdgeInsets.only(bottom: 16.0),
+                  decoration: BoxDecoration(
+                    color: BiomedicalTheme.accentRose.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: BiomedicalTheme.accentRose.withOpacity(0.4)),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Icon(Icons.error_outline, color: BiomedicalTheme.accentRose, size: 20),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          provider.errorMessage!,
+                          style: const TextStyle(color: Colors.white, fontSize: 12),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               SizedBox(
@@ -111,10 +137,21 @@ class _LoginScreenState extends State<LoginScreen> {
                       : () async {
                           final email = _emailController.text.trim();
                           final password = _passwordController.text;
+
+                          if (email.isEmpty || password.isEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Please enter both email and password')),
+                            );
+                            return;
+                          }
+
                           if (_isRegister) {
                             if (!_consent) {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Research consent required')),
+                                const SnackBar(
+                                  content: Text('Explicit biometric research consent is required to register'),
+                                  backgroundColor: BiomedicalTheme.accentRose,
+                                ),
                               );
                               return;
                             }
@@ -127,6 +164,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           } else {
                             await provider.login(email, password);
                           }
+
                           if (provider.errorMessage == null && mounted) {
                             Navigator.pushReplacement(
                               context,
@@ -140,7 +178,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           width: 20,
                           child: CircularProgressIndicator(color: BiomedicalTheme.primaryNavy),
                         )
-                      : Text(_isRegister ? 'Register' : 'Sign In'),
+                      : Text(_isRegister ? 'Register Participant' : 'Sign In'),
                 ),
               ),
               const SizedBox(height: 12),
@@ -157,7 +195,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     }
                   },
                   icon: const Icon(Icons.bolt, color: BiomedicalTheme.accentTeal),
-                  label: const Text('Instant Demo Mode (No Server Required)'),
+                  label: const Text('Instant Demo Mode (Offline / Direct)'),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: BiomedicalTheme.accentTeal,
                     side: const BorderSide(color: BiomedicalTheme.accentTeal),
@@ -169,7 +207,11 @@ class _LoginScreenState extends State<LoginScreen> {
               Center(
                 child: TextButton(
                   onPressed: () {
-                    setState(() => _isRegister = !_isRegister);
+                    provider.clearError(); // Clear any previous error when switching screens
+                    setState(() {
+                      _isRegister = !_isRegister;
+                      _consent = false; // Reset consent on switch
+                    });
                   },
                   child: Text(
                     _isRegister
@@ -199,62 +241,113 @@ class _LoginScreenState extends State<LoginScreen> {
 
   void _showServerConfigDialog(BuildContext context, MeasurementProvider provider) {
     final controller = TextEditingController(text: provider.apiService.baseUrl);
+    String probeStatus = '';
+    bool isProbing = false;
+
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: BiomedicalTheme.cardNavy,
-        title: const Text('Configure Backend Server URL', style: TextStyle(fontSize: 16)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'If testing on a physical phone via Wi-Fi, enter your PC local IP:',
-              style: TextStyle(fontSize: 12, color: BiomedicalTheme.textMuted),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: controller,
-              decoration: const InputDecoration(
-                labelText: 'Server URL',
-                hintText: 'http://192.168.100.103:8000',
-                border: OutlineInputBorder(),
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          backgroundColor: BiomedicalTheme.cardNavy,
+          title: const Text('Configure Backend Server URL', style: TextStyle(fontSize: 16)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'If testing on a physical phone via Wi-Fi, select PC Wi-Fi:',
+                style: TextStyle(fontSize: 12, color: BiomedicalTheme.textMuted),
               ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: controller,
+                decoration: const InputDecoration(
+                  labelText: 'Server Base URL',
+                  hintText: 'http://192.168.100.103:8000',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 10),
+              Wrap(
+                spacing: 8,
+                children: [
+                  ActionChip(
+                    label: const Text('PC Wi-Fi (192.168.100.103)', style: TextStyle(fontSize: 10)),
+                    onPressed: () => controller.text = ApiConfig.lanUrl,
+                  ),
+                  ActionChip(
+                    label: const Text('Emulator (10.0.2.2)', style: TextStyle(fontSize: 10)),
+                    onPressed: () => controller.text = ApiConfig.emulatorUrl,
+                  ),
+                  ActionChip(
+                    label: const Text('Localhost (127.0.0.1)', style: TextStyle(fontSize: 10)),
+                    onPressed: () => controller.text = ApiConfig.localhostUrl,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white12,
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                    ),
+                    onPressed: isProbing
+                        ? null
+                        : () async {
+                            setDialogState(() {
+                              isProbing = true;
+                              probeStatus = 'Testing connection...';
+                            });
+                            final ok = await ApiConfig.checkHealth(controller.text.trim());
+                            setDialogState(() {
+                              isProbing = false;
+                              probeStatus = ok
+                                  ? '✓ Server reachable & healthy'
+                                  : '✗ Server unreachable';
+                            });
+                          },
+                    icon: const Icon(Icons.wifi_tethering, size: 14),
+                    label: const Text('Test Connection', style: TextStyle(fontSize: 11)),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      probeStatus,
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: probeStatus.startsWith('✓')
+                            ? BiomedicalTheme.accentTeal
+                            : probeStatus.startsWith('✗')
+                                ? BiomedicalTheme.accentRose
+                                : Colors.white70,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Cancel'),
             ),
-            const SizedBox(height: 10),
-            Wrap(
-              spacing: 8,
-              children: [
-                ActionChip(
-                  label: const Text('PC Wi-Fi (192.168.100.103)', style: TextStyle(fontSize: 10)),
-                  onPressed: () => controller.text = 'http://192.168.100.103:8000',
-                ),
-                ActionChip(
-                  label: const Text('Emulator (10.0.2.2)', style: TextStyle(fontSize: 10)),
-                  onPressed: () => controller.text = 'http://10.0.2.2:8000',
-                ),
-                ActionChip(
-                  label: const Text('Localhost', style: TextStyle(fontSize: 10)),
-                  onPressed: () => controller.text = 'http://127.0.0.1:8000',
-                ),
-              ],
+            ElevatedButton(
+              onPressed: () {
+                final url = controller.text.trim();
+                if (url.isNotEmpty) {
+                  provider.apiService.setBaseUrl(url);
+                  provider.clearError();
+                }
+                Navigator.pop(ctx);
+                setState(() {});
+              },
+              child: const Text('Save'),
             ),
           ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              provider.apiService.setBaseUrl(controller.text.trim());
-              Navigator.pop(ctx);
-              setState(() {});
-            },
-            child: const Text('Save'),
-          ),
-        ],
       ),
     );
   }

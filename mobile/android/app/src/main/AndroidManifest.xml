@@ -19,7 +19,8 @@
         android:label="rPPG Vital Signs Monitor"
         android:name="${applicationName}"
         android:icon="@android:drawable/sym_def_app_icon"
-        android:usesCleartextTraffic="true">
+        android:usesCleartextTraffic="true"
+        android:networkSecurityConfig="@xml/network_security_config">
         <activity
             android:name=".MainActivity"
             android:exported="true"

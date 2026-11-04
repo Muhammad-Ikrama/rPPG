@@ -1,23 +1,27 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import '../core/api_config.dart';
 import '../models/vital_sign.dart';
 
 class ApiService {
-  String baseUrl = 'http://10.0.2.2:8000'; // Default Android emulator host loopback
+  String baseUrl = ApiConfig.defaultUrl;
   String? _token;
 
   Future<void> init() async {
     final prefs = await SharedPreferences.getInstance();
-    baseUrl = prefs.getString('server_url') ?? 'http://10.0.2.2:8000';
+    final savedUrl = prefs.getString('server_url');
+    baseUrl = await ApiConfig.discoverHealthyServer(preferredUrl: savedUrl);
+    await prefs.setString('server_url', baseUrl);
     _token = prefs.getString('auth_token');
   }
 
-  void setBaseUrl(String url) async {
-    baseUrl = url;
+  Future<void> setBaseUrl(String url) async {
+    baseUrl = url.trim().replaceAll(RegExp(r'/+$'), '');
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('server_url', url);
+    await prefs.setString('server_url', baseUrl);
   }
 
   Map<String, String> _headers([bool isJson = true]) {
@@ -27,58 +31,86 @@ class ApiService {
     return headers;
   }
 
-  Future<Map<String, dynamic>> login(String email, String password) async {
-    final response = await http.post(
-      Uri.parse('$baseUrl/api/v1/auth/login'),
-      headers: _headers(),
-      body: jsonEncode({'email': email, 'password': password}),
-    ).timeout(
-      const Duration(seconds: 4),
-      onTimeout: () => throw Exception(
-        'Server connection timeout to $baseUrl.\n'
-        '• If using a physical phone on Wi-Fi, change Server URL to http://192.168.100.103:8000\n'
-        '• Or tap "Instant Demo Mode" to test immediately without network.'
-      ),
-    );
-    if (response.statusCode != 200) {
-      final err = jsonDecode(response.body);
-      throw Exception(err['detail'] ?? 'Login failed');
+  String _formatErrorMessage(dynamic error, String operation) {
+    final errStr = error.toString();
+    if (error is SocketException ||
+        errStr.contains('SocketException') ||
+        errStr.contains('Connection timed out') ||
+        errStr.contains('errno = 110') ||
+        errStr.contains('Connection refused') ||
+        errStr.contains('Failed host lookup') ||
+        errStr.contains('ClientException')) {
+      return 'Unable to connect to the research server at $baseUrl.\n'
+          '• If on a physical phone: Ensure PC and phone are on the same Wi-Fi.\n'
+          '• Configure Server URL at the bottom if using a different IP.\n'
+          '• Or tap "Instant Demo Mode" to test immediately offline.';
     }
-    final data = jsonDecode(response.body);
-    _token = data['access_token'];
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('auth_token', _token!);
-    return data;
+    if (error is TimeoutException || errStr.contains('TimeoutException') || errStr.contains('timeout')) {
+      return 'Connection timed out while contacting $baseUrl.\n'
+          '• Verify server is running on the host PC.\n'
+          '• Or tap "Instant Demo Mode" to test immediately offline.';
+    }
+    if (errStr.startsWith('Exception: ')) {
+      return errStr.substring(11);
+    }
+    return errStr;
+  }
+
+  Future<Map<String, dynamic>> login(String email, String password) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/api/v1/auth/login'),
+        headers: _headers(),
+        body: jsonEncode({'email': email, 'password': password}),
+      ).timeout(const Duration(seconds: 4));
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        _token = data['access_token'];
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('auth_token', _token!);
+        return data;
+      } else if (response.statusCode == 401) {
+        throw Exception('Incorrect email or password. Please verify your credentials.');
+      } else {
+        final err = jsonDecode(response.body);
+        throw Exception(err['detail'] ?? 'Login failed (${response.statusCode})');
+      }
+    } catch (e) {
+      throw Exception(_formatErrorMessage(e, 'Sign In'));
+    }
   }
 
   Future<Map<String, dynamic>> register(
       String email, String password, String fullName, bool consent) async {
-    final response = await http.post(
-      Uri.parse('$baseUrl/api/v1/auth/register'),
-      headers: _headers(),
-      body: jsonEncode({
-        'email': email,
-        'password': password,
-        'full_name': fullName,
-        'consent_accepted': consent,
-      }),
-    ).timeout(
-      const Duration(seconds: 4),
-      onTimeout: () => throw Exception(
-        'Server connection timeout to $baseUrl.\n'
-        '• If using a physical phone on Wi-Fi, change Server URL to http://192.168.100.103:8000\n'
-        '• Or tap "Instant Demo Mode" to test immediately without network.'
-      ),
-    );
-    if (response.statusCode != 200) {
-      final err = jsonDecode(response.body);
-      throw Exception(err['detail'] ?? 'Registration failed');
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/api/v1/auth/register'),
+        headers: _headers(),
+        body: jsonEncode({
+          'email': email,
+          'password': password,
+          'full_name': fullName,
+          'consent_accepted': consent,
+        }),
+      ).timeout(const Duration(seconds: 4));
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        _token = data['access_token'];
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('auth_token', _token!);
+        return data;
+      } else if (response.statusCode == 400) {
+        final err = jsonDecode(response.body);
+        throw Exception(err['detail'] ?? 'Registration failed: Account may already exist.');
+      } else {
+        final err = jsonDecode(response.body);
+        throw Exception(err['detail'] ?? 'Registration failed (${response.statusCode})');
+      }
+    } catch (e) {
+      throw Exception(_formatErrorMessage(e, 'Registration'));
     }
-    final data = jsonDecode(response.body);
-    _token = data['access_token'];
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('auth_token', _token!);
-    return data;
   }
 
   Future<String> createSession() async {

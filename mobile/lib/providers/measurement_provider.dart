@@ -22,6 +22,21 @@ class MeasurementProvider extends ChangeNotifier {
     await apiService.init();
   }
 
+  void clearError() {
+    if (_errorMessage != null) {
+      _errorMessage = null;
+      notifyListeners();
+    }
+  }
+
+  String _cleanErrorMessage(dynamic error) {
+    String msg = error.toString();
+    if (msg.startsWith('Exception: ')) {
+      msg = msg.substring(11);
+    }
+    return msg;
+  }
+
   Future<void> login(String email, String password) async {
     _isLoading = true;
     _errorMessage = null;
@@ -30,7 +45,7 @@ class MeasurementProvider extends ChangeNotifier {
       await apiService.login(email, password);
       await fetchHistory();
     } catch (e) {
-      _errorMessage = e.toString();
+      _errorMessage = _cleanErrorMessage(e);
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -45,7 +60,7 @@ class MeasurementProvider extends ChangeNotifier {
       await apiService.register(email, password, name, consent);
       await fetchHistory();
     } catch (e) {
-      _errorMessage = e.toString();
+      _errorMessage = _cleanErrorMessage(e);
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -54,6 +69,7 @@ class MeasurementProvider extends ChangeNotifier {
 
   Future<void> runDemo() async {
     _isLoading = true;
+    _errorMessage = null;
     _processingStage = 'Simulating POS optical pulse extraction...';
     notifyListeners();
 
@@ -61,7 +77,7 @@ class MeasurementProvider extends ChangeNotifier {
       _currentData = await apiService.runInstantDemo();
       await fetchHistory();
     } catch (e) {
-      _errorMessage = e.toString();
+      _errorMessage = _cleanErrorMessage(e);
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -70,6 +86,7 @@ class MeasurementProvider extends ChangeNotifier {
 
   Future<void> processRecordedVideo(String videoPath) async {
     _isLoading = true;
+    _errorMessage = null;
     _processingStage = 'Uploading secure video to cloud...';
     notifyListeners();
 
@@ -97,7 +114,7 @@ class MeasurementProvider extends ChangeNotifier {
         }
       }
     } catch (e) {
-      _errorMessage = e.toString();
+      _errorMessage = _cleanErrorMessage(e);
     } finally {
       _isLoading = false;
       notifyListeners();

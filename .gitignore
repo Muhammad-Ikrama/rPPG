@@ -57,6 +57,8 @@ mobile/ios/Flutter/Flutter.framework
 mobile/ios/Flutter/Flutter.podspec
 
 # IDE & OS
+*.apk
+storage/checkpoints/*
 .idea/
 .vscode/
 *.swp
