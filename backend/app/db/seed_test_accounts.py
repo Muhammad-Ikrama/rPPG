@@ -42,6 +42,11 @@ TEST_ACCOUNTS = [
         "full_name": "FYP Group Member 3",
     },
     {
+        "email": "member4@fyp.edu",
+        "password": "Member4Pass2026!",
+        "full_name": "FYP Group Member 4",
+    },
+    {
         "email": "fyp_evaluator@fyp.edu",
         "password": "EvaluatorPass2026!",
         "full_name": "FYP Project Evaluator / Supervisor",

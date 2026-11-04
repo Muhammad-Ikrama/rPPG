@@ -13,8 +13,8 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final _emailController = TextEditingController(text: 'demo_researcher@fyp.edu');
-  final _passwordController = TextEditingController(text: 'ResearchPassword123!');
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
   final _nameController = TextEditingController();
   bool _isRegister = false;
   bool _consent = false; // Strictly unchecked by default for biomedical research protocol
@@ -60,6 +60,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 keyboardType: TextInputType.emailAddress,
                 decoration: const InputDecoration(
                   labelText: 'Email Address',
+                  hintText: 'e.g. member1@fyp.edu',
                   border: OutlineInputBorder(),
                   filled: true,
                   fillColor: BiomedicalTheme.cardNavy,
@@ -71,6 +72,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 obscureText: true,
                 decoration: const InputDecoration(
                   labelText: 'Password',
+                  hintText: 'Enter your account password',
                   border: OutlineInputBorder(),
                   filled: true,
                   fillColor: BiomedicalTheme.cardNavy,
