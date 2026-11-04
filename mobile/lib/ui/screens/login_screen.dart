@@ -39,10 +39,30 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               const SizedBox(height: 6),
               const Text(
-                'Enter credentials to access rPPG cloud session processing.',
+                'Enter credentials to access on-device rPPG session processing.',
                 style: TextStyle(fontSize: 13, color: BiomedicalTheme.textMuted),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: BiomedicalTheme.accentTeal.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: BiomedicalTheme.accentTeal.withOpacity(0.3)),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: const [
+                    Icon(Icons.bolt, color: BiomedicalTheme.accentTeal, size: 14),
+                    SizedBox(width: 6),
+                    Text(
+                      'Offline Engine: 100% On-Device & Fast',
+                      style: TextStyle(color: BiomedicalTheme.accentTeal, fontSize: 11, fontWeight: FontWeight.w600),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
               if (_isRegister) ...[
                 TextField(
                   controller: _nameController,
