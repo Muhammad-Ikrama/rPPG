@@ -1,1 +1,65 @@
-[]
+[
+  {
+    "experiment_id": "EXP-PHYSNET-1793750860",
+    "experiment_name": "PhysNet_Run_0018",
+    "timestamp": "2026-11-04T00:07:59.810251+00:00",
+    "model_architecture": "PhysNet (Yu et al. BMVC 2019)",
+    "device": "cpu",
+    "status": "COMPLETED",
+    "hyperparameters": {
+      "initial_lr": 0.001,
+      "weight_decay": 0.0001,
+      "batch_size": 2,
+      "epochs": 2,
+      "random_seed": 42,
+      "optimizer": "AdamW",
+      "loss_function": "CompositeRPPGLoss (Pearson + Spectral SNR + Derivative)"
+    },
+    "data_partitions": {
+      "train_subjects": [
+        0,
+        1,
+        5,
+        2
+      ],
+      "val_subjects": [
+        4
+      ],
+      "test_subjects": [
+        3
+      ],
+      "total_train_samples": 32,
+      "total_val_samples": 8,
+      "total_test_samples": 8
+    },
+    "training_history": [
+      {
+        "epoch": 1,
+        "train_loss": 0.34,
+        "val_loss": 1.2842,
+        "train_pearson_loss": 0.2972,
+        "val_pearson_loss": 1.1723,
+        "duration_seconds": 8.45
+      },
+      {
+        "epoch": 2,
+        "train_loss": 0.2066,
+        "val_loss": 0.1418,
+        "train_pearson_loss": 0.1784,
+        "val_pearson_loss": 0.118,
+        "duration_seconds": 9.1
+      }
+    ],
+    "final_metrics": {
+      "best_val_loss": 0.1418,
+      "test_loss": 1.0542,
+      "test_pearson_loss": 0.8905,
+      "total_training_duration_seconds": 18.17
+    },
+    "artifacts": {
+      "checkpoint_path": "./storage/checkpoints\\EXP-PHYSNET-1793750860_best.pt",
+      "onnx_exported": true,
+      "onnx_path": "./storage/checkpoints\\EXP-PHYSNET-1793750860.onnx"
+    }
+  }
+]

@@ -1,10 +1,10 @@
 """
-Vital Sign Estimate and Biomarker Results Database Model.
+Vital Sign Estimate, Signal Diagnostics, and Manual Reference Measurement Model.
 """
 
 from datetime import datetime, timezone
 import uuid
-from sqlalchemy import Column, String, Float, Boolean, DateTime, ForeignKey, Text, JSON
+from sqlalchemy import Column, String, Float, Boolean, DateTime, ForeignKey, Text
 from sqlalchemy.orm import relationship
 from app.db.session import Base
 
@@ -18,7 +18,7 @@ class VitalSignEstimate(Base):
     # 1. Heart Rate (HR)
     hr_bpm = Column(Float, nullable=True)
     hr_confidence = Column(Float, default=0.0)
-    hr_status = Column(String(32), default="UNRELIABLE")  # EXCELLENT, GOOD, FAIR, UNRELIABLE
+    hr_status = Column(String(32), default="UNRELIABLE")
     snr_db = Column(Float, default=-99.0)
     time_domain_bpm = Column(Float, nullable=True)
     rmssd_ms = Column(Float, nullable=True)
@@ -26,9 +26,9 @@ class VitalSignEstimate(Base):
     # 2. Respiratory Rate (RR)
     rr_brpm = Column(Float, nullable=True)
     rr_confidence = Column(Float, default=0.0)
-    rr_status = Column(String(32), default="UNAVAILABLE")  # GOOD, FAIR, LOW_CONFIDENCE, UNAVAILABLE
+    rr_status = Column(String(32), default="UNAVAILABLE")
 
-    # 3. Peripheral Oxygen Saturation (SpO2) - Research Module
+    # 3. Peripheral Oxygen Saturation (SpO2) - Experimental Research Module
     spo2_percent = Column(Float, nullable=True)
     spo2_confidence = Column(Float, default=0.0)
     spo2_status = Column(String(64), default="EXPERIMENTAL_UNCALIBRATED")
@@ -42,27 +42,33 @@ class VitalSignEstimate(Base):
     bp_status = Column(String(64), default="EXPERIMENTAL_RESEARCH")
     bp_is_calibrated = Column(Boolean, default=False)
 
-    # Signal Quality Index (SQI)
+    # Signal Quality Index (SQI) & ROI Diagnostics
     sqi_score = Column(Float, default=0.0)
     sqi_status = Column(String(32), default="POOR")
     motion_stability = Column(Float, default=0.0)
     illumination_stability = Column(Float, default=0.0)
     quality_guidance = Column(Text, nullable=True)
+    valid_face_ratio = Column(Float, default=0.0)
+    mean_motion_px = Column(Float, default=0.0)
+    actual_fps = Column(Float, nullable=True)
 
-    # Ground Truth Reference Values (for clinical/dataset validation)
+    # Channel B: Manually Verified Reference Values (Patient Monitor)
     reference_hr = Column(Float, nullable=True)
     reference_rr = Column(Float, nullable=True)
     reference_spo2 = Column(Float, nullable=True)
     reference_sbp = Column(Float, nullable=True)
     reference_dbp = Column(Float, nullable=True)
+    reference_measured_at = Column(DateTime(timezone=True), nullable=True)
+    reference_operator_notes = Column(Text, nullable=True)
+    is_manual_reference_verified = Column(Boolean, default=False, nullable=False)
 
     # Serialized Signal Curves for Interactive Visualizations
-    rppg_waveform_json = Column(Text, nullable=True)  # Downsampled points [v1, v2, ...]
+    rppg_waveform_json = Column(Text, nullable=True)
     psd_frequencies_json = Column(Text, nullable=True)
     psd_power_json = Column(Text, nullable=True)
     ibi_series_json = Column(Text, nullable=True)
 
-    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 
     # Relationships
     session = relationship("MeasurementSession", back_populates="vital_signs")

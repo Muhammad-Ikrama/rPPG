@@ -56,7 +56,10 @@ mobile/ios/.symlinks/
 mobile/ios/Flutter/Flutter.framework
 mobile/ios/Flutter/Flutter.podspec
 
-# IDE & OS
+# IDE & OS & Secrets
+secrets/
+*.env
+.env
 *.apk
 storage/checkpoints/*
 .idea/
